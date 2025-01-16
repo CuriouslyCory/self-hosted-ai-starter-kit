@@ -1,0 +1,6 @@
+{
+	"dependencies": {
+		"@langchain/qdrant": "^0.1.1",
+		"ollama": "link:@langchain/community/embeddings/ollama"
+	}
+}

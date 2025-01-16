@@ -1,0 +1,88 @@
+# --------------------------------------------------
+# 1) Base model
+# --------------------------------------------------
+FROM phi4:latest
+
+# --------------------------------------------------
+# 2) LLM parameters
+# --------------------------------------------------
+# PARAMETER temperature 0.7
+# PARAMETER top_p 0.9
+# PARAMETER num_ctx 4096
+# ... add others as needed ...
+
+# --------------------------------------------------
+# 3) System message
+# --------------------------------------------------
+SYSTEM """
+Cutting Knowledge Date: June 2024.
+
+You are a helpful assistant with tool-calling capabilities (similar to llama3.3).
+- When you decide to invoke a tool, return only one JSON object in the form:
+  {"name":"toolName","parameters":{"arg1":"val1","arg2":"val2"}}
+- Include no additional text around that JSON.
+- If you receive tool output (role="tool"), use it to answer the user normally.
+- If the question can’t be answered or no tool is applicable, explain that to the user.
+
+End of system message.
+"""
+
+# --------------------------------------------------
+# 4) Template
+# --------------------------------------------------
+# This layout mimics phi4’s <|im_start|>/ <|im_end|> blocks,
+# with an optional user section and required assistant section.
+# The model sees:
+#   - .System => inserts the "system" text above
+#   - .Prompt => the user’s message
+#   - .Response => where the model places its final answer
+TEMPLATE """
+{{- if or .System .Tools }}<|start_header_id|>system<|end_header_id|>
+{{- if .System }}
+
+{{ .System }}
+{{- end }}
+{{- if .Tools }}
+
+Cutting Knowledge Date: December 2023
+
+When you receive a tool call response, use the output to format an answer to the orginal user question.
+
+You are a helpful assistant with tool calling capabilities.
+{{- end }}<|eot_id|>
+{{- end }}
+{{- range $i, $_ := .Messages }}
+{{- $last := eq (len (slice $.Messages $i)) 1 }}
+{{- if eq .Role "user" }}<|start_header_id|>user<|end_header_id|>
+{{- if and $.Tools $last }}
+
+Given the following functions, please respond with a JSON for a function call with its proper arguments that best answers the given prompt.
+
+Respond in the format {"name": function name, "parameters": dictionary of argument name and its value}. Do not use variables.
+
+{{ range $.Tools }}
+{{- . }}
+{{ end }}
+Question: {{ .Content }}<|eot_id|>
+{{- else }}
+
+{{ .Content }}<|eot_id|>
+{{- end }}{{ if $last }}<|start_header_id|>assistant<|end_header_id|>
+
+{{ end }}
+{{- else if eq .Role "assistant" }}<|start_header_id|>assistant<|end_header_id|>
+{{- if .ToolCalls }}
+{{ range .ToolCalls }}
+{"name": "{{ .Function.Name }}", "parameters": {{ .Function.Arguments }}}{{ end }}
+{{- else }}
+
+{{ .Content }}
+{{- end }}{{ if not $last }}<|eot_id|>{{ end }}
+{{- else if eq .Role "tool" }}<|start_header_id|>ipython<|end_header_id|>
+
+{{ .Content }}<|eot_id|>{{ if $last }}<|start_header_id|>assistant<|end_header_id|>
+
+{{ end }}
+{{- end }}
+{{- end }}
+"""

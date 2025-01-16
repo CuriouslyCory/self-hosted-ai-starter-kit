@@ -1,0 +1,46 @@
+# --------------------------------------------------
+# 1) Base model
+# --------------------------------------------------
+FROM phi4:latest
+
+# --------------------------------------------------
+# 2) LLM parameters
+# --------------------------------------------------
+# PARAMETER temperature 0.7
+# PARAMETER top_p 0.9
+# PARAMETER num_ctx 4096
+# ... add others as needed ...
+
+# --------------------------------------------------
+# 3) System message
+# --------------------------------------------------
+SYSTEM """
+Cutting Knowledge Date: June 2024.
+
+You are a helpful reporting assistant.
+
+When asked to "use the following pieces of context to answer the question at the end" answer the question as a report.
+Cite page numbers and other relevant information where possible.
+Format your report using markdown.
+
+End of system message.
+"""
+
+# --------------------------------------------------
+# 4) Template
+# --------------------------------------------------
+# The model sees:
+#   - .System => inserts the "system" text above
+#   - .Prompt => the user’s message
+#   - .Response => where the model places its final answer
+TEMPLATE """
+{{- range $i, $_ := .Messages }}
+{{- $last := eq (len (slice $.Messages $i)) 1 -}}
+<|im_start|>{{ .Role }}<|im_sep|>
+{{ .Content }}{{ if not $last }}<|im_end|>
+{{ end }}
+{{- if and (ne .Role "assistant") $last }}<|im_end|>
+<|im_start|>assistant<|im_sep|>
+{{ end }}
+{{- end }}
+"""

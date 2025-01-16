@@ -1,0 +1,28 @@
+<purpose>
+    Show me the SQL command to create an SQLite table named "User" with columns: id (integer), email (text), address (text), isMember (boolean).
+</purpose>
+
+<instructions>
+    <instruction>
+        Use postgres dialect
+    </instruction>
+    <instruction>
+        Do not include any other text or comments in the output.
+    </instruction>
+    <instruction>
+        Only output the SQL command.
+    </instruction>
+</instructions>
+
+<example-output>
+    CREATE TABLE User (
+        id INTEGER PRIMARY KEY,
+        email TEXT,
+        address TEXT,
+        isMember BOOLEAN
+    );
+</example-output>
+
+<content>
+    {...}
+</content>
