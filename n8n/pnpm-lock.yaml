@@ -11,6 +11,9 @@ importers:
       '@langchain/qdrant':
         specifier: ^0.1.1
         version: 0.1.1(@langchain/core@0.3.26)(typescript@5.7.2)
+      js-tiktoken:
+        specifier: ^1.0.16
+        version: 1.0.16
       ollama:
         specifier: link:@langchain/community/embeddings/ollama
         version: link:@langchain/community/embeddings/ollama
