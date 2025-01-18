@@ -1,2 +1,5 @@
 n8n/node_modules
+shared/local_data/2025*.md
+shared/local_data/2025*.txt
+shared/local_data/2025*.pdf
 .env
