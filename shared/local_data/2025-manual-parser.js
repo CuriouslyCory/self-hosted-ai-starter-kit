@@ -371,6 +371,12 @@ const TABLE_OF_CONTENTS = [
   },
 ];
 
+function removeControlCharacters(str) {
+  // This regex matches the C0 control range (U+0000–U+001F) plus the DEL character (U+007F).
+  // Adjust or expand the ranges if you want to handle more control characters (e.g., U+0080–U+009F).
+  return str.replace(/[\u0000-\u001F\u007F]/g, "");
+}
+
 /*************************************************
  * MERGE TOC + PAGES
  *************************************************/
@@ -395,7 +401,7 @@ function mergeTocWithPages(toc, pages, tokenizer, maxTokens = 4000) {
   function getPageText(pageNumber) {
     const key = String(pageNumber);
     if (!pages[key]) return "";
-    return pages[key].text;
+    return removeControlCharacters(pages[key].text);
   }
 
   // 3) Map over each TOC entry
@@ -404,15 +410,17 @@ function mergeTocWithPages(toc, pages, tokenizer, maxTokens = 4000) {
     const startPage = entry.page;
 
     // - The next entry (if any)
-    const nextEntry = sortedToc[index + 1] ?? { page: 9999 };
+    const nextEntry = sortedToc[index + 1];
 
     // - The next start page or Infinity if we’re at the last entry
-    const nextStartPage = nextEntry ? nextEntry.page : sortedToc.at(-1).page;
+    const nextStartPage = nextEntry ? nextEntry.page : 9999;
 
     // 4) Gather all pages from startPage up to nextStartPage - 1
     let combinedText = "";
     for (let p = startPage; p < nextStartPage; p++) {
-      combinedText += getPageText(p) + "\n";
+      const pt = getPageText(p);
+      if (!pt) break;
+      combinedText += pt + "\n";
     }
 
     // 5) Chunk the combined text
