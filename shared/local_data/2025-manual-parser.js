@@ -103,12 +103,6 @@ const TABLE_OF_CONTENTS = [
     id: "foreword",
     title: "FOREWORD: A PROMISE TO AMERICA",
     page: 1,
-    authors: [],
-  },
-  {
-    id: "foreword",
-    title: "FOREWORD: A PROMISE TO AMERICA",
-    page: 1,
     authors: ["Kevin D. Roberts, PhD"],
   },
   {
@@ -373,12 +367,6 @@ const TABLE_OF_CONTENTS = [
     id: "onward",
     title: "ONWARD!",
     page: 883,
-    authors: [],
-  },
-  {
-    id: "onward",
-    title: "ONWARD!",
-    page: 883,
     authors: ["Edwin J. Feulner"],
   },
 ];
@@ -416,7 +404,7 @@ function mergeTocWithPages(toc, pages, tokenizer, maxTokens = 4000) {
     const startPage = entry.page;
 
     // - The next entry (if any)
-    const nextEntry = sortedToc[index + 1];
+    const nextEntry = sortedToc[index + 1] ?? { page: 9999 };
 
     // - The next start page or Infinity if we’re at the last entry
     const nextStartPage = nextEntry ? nextEntry.page : sortedToc.at(-1).page;
